@@ -1,58 +1,33 @@
-
+from flask import jsonify
 from pymongo import MongoClient
-
-from os import listdir
-from os.path import isfile, join
-from os import walk
 import os
 
 import datetime
 from app import app
-from app import helpers
+from app.helpers import update_stats_db, update_time_db, insert_csvs_into_db, get_collections, get_last_inserted_time, \
+    get_stats_dict
+
+
 @app.route('/')
 def hello_world():
     return '/load to load the files \n\n  /stats/v1/measure to view stats'
+
 
 @app.route('/load/')
 def load_data():
     """
     loads the new files which were added after the latest timestamp of inserted files
     """
-    client = MongoClient(os.environ.get('CONNECTION_STRING'))
-    db = client.test
-    database = client['YOUR_DB_NAME']
-    collection = database['your_collection']  # maintains the dataabese
-    time_collection = database['time_collection']  # maintains the timestamp of the last file added
-    stats_collection = database['stats_collection']  # maintains the stats of time and count
+    collection, stats_collection, time_collection = get_collections()
     time = datetime.datetime.min
-    stats_cursor = stats_collection.find({})
-    last_inserted_time = datetime.datetime.min
-    cursor = time_collection.find({})
-    stats_dict = {'files_count': 0, 'Time_taken': 0}
-    for documet in stats_cursor:
-        stats_dict['files_count'] = documet['files_count']
-        stats_dict['Time_taken'] = documet['Time_taken']
-    for document in cursor:
-        last_inserted_time = document['time']  # get the highest timestamp of the alredy inserted file
+
+    stats_dict = get_stats_dict(stats_collection)
+    last_inserted_time = get_last_inserted_time(time_collection)
     start_time = datetime.datetime.now()
-    for (dirpath, dirnames, filenames) in walk(os.environ.get('CSV_FOLDER')):  # for local development SFTP code should be added for SFTP remote connections
-        for filename in filenames:
-            timestamp = helpers.extract_timestamp(filename)
-            if timestamp > last_inserted_time:  # compae with highest timestamp
-                filepath = (str(dirpath + os.path.sep + filename))
-                if (timestamp > time):
-                    time = timestamp  # update timestamp to be posted in time_collection
-                collection.insert_many(csv_to_json(str(filepath)))
-                stats_dict['files_count'] += 1
-    if time != datetime.datetime.min:
-        x = time_collection.delete_many({})
-        time_dict = dict()
-        time_dict['time'] = time
-        time_collection.insert_one(time_dict)
-    stats_dict['Time_taken'] = stats_dict['Time_taken'] + (datetime.datetime.now() - start_time).seconds
-    x = stats_collection.delete_many({})
-    stats_collection.insert_one(stats_dict)
-    return 'data inserted'
+    time = insert_csvs_into_db(collection, last_inserted_time, stats_dict, time)
+    update_time_db(time, time_collection)
+    update_stats_db(start_time, stats_collection, stats_dict)
+    return 'data inserted', 201
 
 
 @app.route('/stats/v1/measure')
@@ -67,5 +42,5 @@ def get_stats():
     for i in stats_cursor:
         d = dict(i)
         del d['_id']
-        return d
-    return {}
+        return jsonify(d), 201
+    return jsonify({}), 404
