@@ -1,3 +1,18 @@
+
+from pymongo import MongoClient
+
+from os import listdir
+from os.path import isfile, join
+from os import walk
+import os
+
+import datetime
+from app import app
+from app import helpers
+@app.route('/')
+def hello_world():
+    return '/load to load the files \n  /stats/v1/measure to view stats'
+
 @app.route('/load/')
 def load_data():
     """
@@ -23,7 +38,7 @@ def load_data():
     for (dirpath, dirnames, filenames) in walk(
             "/home/swastik/commerceIQ/csvs"):  # for local development SFTP code should be added for SFTP remote connections
         for filename in filenames:
-            timestamp = extract_timestamp(filename)
+            timestamp = helpers.extract_timestamp(filename)
             if timestamp > last_inserted_time:  # compae with highest timestamp
                 filepath = (str(dirpath + os.path.sep + filename))
                 if (timestamp > time):
