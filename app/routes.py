@@ -11,14 +11,14 @@ from app import app
 from app import helpers
 @app.route('/')
 def hello_world():
-    return '/load to load the files \n  /stats/v1/measure to view stats'
+    return '/load to load the files \n\n  /stats/v1/measure to view stats'
 
 @app.route('/load/')
 def load_data():
     """
     loads the new files which were added after the latest timestamp of inserted files
     """
-    client = MongoClient("mongodb+srv://user:forcabarca@cluster0.t7bhf.mongodb.net/ciq?retryWrites=true&w=majority")
+    client = MongoClient(os.environ.get('CONNECTION_STRING'))
     db = client.test
     database = client['YOUR_DB_NAME']
     collection = database['your_collection']  # maintains the dataabese
@@ -35,8 +35,7 @@ def load_data():
     for document in cursor:
         last_inserted_time = document['time']  # get the highest timestamp of the alredy inserted file
     start_time = datetime.datetime.now()
-    for (dirpath, dirnames, filenames) in walk(
-            "/home/swastik/commerceIQ/csvs"):  # for local development SFTP code should be added for SFTP remote connections
+    for (dirpath, dirnames, filenames) in walk(os.environ.get('CSV_FOLDER')):  # for local development SFTP code should be added for SFTP remote connections
         for filename in filenames:
             timestamp = helpers.extract_timestamp(filename)
             if timestamp > last_inserted_time:  # compae with highest timestamp
@@ -61,7 +60,7 @@ def get_stats():
     """
     returns the time and count stats
     """
-    client = MongoClient("mongodb+srv://user:forcabarca@cluster0.t7bhf.mongodb.net/ciq?retryWrites=true&w=majority")
+    client = MongoClient(os.environ.get('CONNECTION_STRING'))
     database = client['YOUR_DB_NAME']
     stats_collection = database['stats_collection']
     stats_cursor = stats_collection.find({})
