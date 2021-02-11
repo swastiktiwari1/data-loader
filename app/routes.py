@@ -1,11 +1,11 @@
-from flask import jsonify
-from pymongo import MongoClient
+import datetime
 import os
 
-import datetime
+from flask import jsonify
+from pymongo import MongoClient
+
 from app import app
-from app.helpers import update_stats_db, update_time_db, insert_csvs_into_db, get_collections, get_last_inserted_time, \
-    get_stats_dict
+from app.helpers import update_stats_db, insert_csvs_into_db, get_collections, get_stats_dict
 
 
 @app.route('/')
@@ -18,14 +18,11 @@ def load_data():
     """
     loads the new files which were added after the latest timestamp of inserted files
     """
-    collection, stats_collection, time_collection = get_collections()
-    time = datetime.datetime.min
+    collection, stats_collection, file_name_collection = get_collections()
 
     stats_dict = get_stats_dict(stats_collection)
-    last_inserted_time = get_last_inserted_time(time_collection)
     start_time = datetime.datetime.now()
-    time = insert_csvs_into_db(collection, last_inserted_time, stats_dict, time)
-    update_time_db(time, time_collection)
+    insert_csvs_into_db(collection, stats_dict, file_name_collection)
     update_stats_db(start_time, stats_collection, stats_dict)
     return 'data inserted', 201
 
