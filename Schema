@@ -1,0 +1,28 @@
+file_name_collection
+{
+  "properties": {
+    "_id": { "bsonType": "objectId" },
+    "file_name": { "bsonType": "string" }
+  }
+}
+
+stats_collection
+{
+  "properties": {
+    "_id": { "bsonType": "objectId" },
+    "files_count": { "bsonType": "int32" },
+    "Time_taken": { "bsonType": "int32" }
+  }
+}
+
+your_collection
+{
+  "properties": {
+    "_id": { "bsonType": "objectId" },
+    "ViewAttemps": { "bsonType": "int32" },
+    "ClientId": { "bsonType": "int32" },
+    "Cell ID": { "bsonType": "int32" },
+    "Object Name": { "bsonType": "string" },
+    "Result Time": { "bsonType": "string" }
+  }
+}
