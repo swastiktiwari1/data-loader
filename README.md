@@ -12,7 +12,7 @@ to schedule the task to take place every 30 minutes
 
 
 
-run python3 program.py 
+run python3 run.py 
 
 http://127.0.0.1:5000/load  to load new files manually
 
